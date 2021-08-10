@@ -43,4 +43,10 @@ async def addQuote(ctx):
 
     await ctx.send(response)
 
+@bot.command(name='ListQuotes', help="Returns how many entires are stored")
+async def getLen(ctx):
+  numQuotes = str(db.__len__())
+  response = "There are " + numQuotes + " stored."
+  await ctx.send(response)
+
 bot.run(TOKEN)
