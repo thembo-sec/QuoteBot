@@ -4,7 +4,9 @@ from discord.ext import commands
 import io
 
 from dotenv import load_dotenv
-from replit import db
+
+# TODO figure out if replit allows more than one value per key
+from replit import db # user replit db (uses weird json format)
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
