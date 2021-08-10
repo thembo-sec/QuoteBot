@@ -2,6 +2,7 @@ import os
 import discord
 from discord.ext import commands
 import io
+import random
 
 from dotenv import load_dotenv
 
@@ -17,6 +18,7 @@ client = discord.Client()
 bot = commands.Bot(command_prefix='!')
 
 #accepts quote and adds to replit database
+#could just store message ID and fetch the message when returning the quote
 def add_quote(msg):
   if str(msg.id) in db: #database keys must be strings for some reason
     response = "Someone else thought it was stupid too! That quote has already been archived"
@@ -24,6 +26,14 @@ def add_quote(msg):
     db[str(msg.id)] = msg.content
     response = "That quote is now recorded forever."
   return response
+
+def get_quote():
+  random.seed()
+  entries = db.prefix("")
+  msgId = random.choice(entries)
+
+  return int(msgId)
+
 
 #TODO, have this add to a xlsx file. might store full message info in class
 @bot.command(name='AddQuote', help="Adds a quote to the list of cool quotes.")
@@ -44,6 +54,19 @@ async def addQuote(ctx):
         response = "There is no quote here"
 
     await ctx.send(response)
+
+#TODO add url and reply to direct quote as well as the quote content.
+@bot.command(name='GetQuote', help='Returns a random quote')
+async def getQuote(ctx):
+
+  msg = ctx.message
+  msgId = get_quote()
+  fchdMsg = await msg.channel.fetch_message(msgId)
+
+  response = "Remember when " + fchdMsg.author.name + " said this?!\n"
+  response = response + "```" + fchdMsg.content + "```\n" + fchdMsg.jump_url
+
+  await ctx.send(response)
 
 @bot.command(name='ListQuotes', help="Returns how many entires are stored")
 async def getLen(ctx):
