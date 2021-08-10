@@ -13,35 +13,22 @@ client = discord.Client()
 
 bot = commands.Bot(command_prefix='!')
 
-@client.event
-async def on_ready():
-    print(f'logged in as {client.user}')
+@bot.command(name='AddQuote', help="Adds a quote to the list of cool quotes.")
+async def addQuote(ctx):  # yes, you can do msg: discord.Message
+    # but for the purposes of this, i'm using an int
 
-
-@client.event
-async def on_message(msg):
-    print(msg.author)
-    print(f' > {msg.content}')
+    msg = ctx.message
 
     if msg.reference != None:
-      print(f' > {msg.reference}')      
+        print(f' > {msg.reference}')
+        fchdMsg = await msg.channel.fetch_message(msg.reference.message_id)
+        print(f' > {fchdMsg.content}')
 
-    if msg.author == client.user:
-        return
+        response = "Wow! A great Quote"
 
-    if msg.content == '$quoteBot':
-        await msg.channel.send('pong')
-        return
+    else:
+        response = "There is no quote here"
 
-client.run(TOKEN)
-
-@bot.command(name = 'Add quote')
-async def addQuote(ctx, msgID: int): # yes, you can do msg: discord.Message
-                                   # but for the purposes of this, i'm using an int
-
-  msg = await ctx.fetch_message(msgID) # you now have the message object from the id
-                                         # ctx.fetch_message gets it from the channel
-                                         # the command was executed in
-
+    await ctx.send(response)
 
 bot.run(TOKEN)
