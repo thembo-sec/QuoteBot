@@ -20,19 +20,19 @@ bot = commands.Bot(command_prefix='!')
 #accepts quote and adds to replit database
 #could just store message ID and fetch the message when returning the quote
 def add_quote(msg):
-  if str(msg.id) in db: #database keys must be strings for some reason
+  if str(msg.id) in db: #database keys must be strings for some reason, doesn't like int
     response = "Someone else thought it was stupid too! That quote has already been archived"
   else:
-    db[str(msg.id)] = msg.content
+    db[str(msg.id)] = msg.content #store msgid and content in the message
     response = ""
   return response
 
 def get_quote():
-  random.seed()
-  entries = db.prefix("")
+  random.seed() #set new seed each time its called
+  entries = db.prefix("") #easiest way to get replit db to return all entries
   msgId = random.choice(entries)
 
-  return int(msgId)
+  return int(msgId) #only need id, can just fetch message if only used in 1 channel
 
 
 #TODO, have this add to a xlsx file. might store full message info in class
@@ -45,6 +45,7 @@ async def addQuote(ctx):
         print(f' > {msg.reference}')
         fchdMsg = await msg.channel.fetch_message(msg.reference.message_id)      
 
+        #i'm lazy, the ide screen is narrow and I don't like \ for multiple lines
         response = "Wow! A great Quote from " + fchdMsg.author.name + "\n"
         response = response + "This'll look great in the pool room"
 
@@ -58,11 +59,11 @@ async def addQuote(ctx):
 @bot.command(name='GetQuote', help='Returns a random quote')
 async def getQuote(ctx):
 
-  msg = ctx.message
+  msg = ctx.message #assign
   msgId = get_quote()
   try:
     fchdMsg = await msg.channel.fetch_message(msgId)
-    response = "Remember when " + fchdMsg.author.name + " said this?!\n"
+    response = "Remember when " + fchdMsg.author.name + " said this?!\n" 
     response = response + "```" + fchdMsg.content + "```\n"
   except:
     response = "That message doesnt exist?! Was it deleted?"
@@ -75,6 +76,8 @@ async def getLen(ctx):
   response = "There are " + numQuotes + " stored."
   await ctx.send(response)
 
+#TODO write the delete as a seperate function to be called in the command
+#This command could probably be cleaner.
 @bot.command(name='DelAll', help = "Deletes all existing quotes.")
 async def delAll(ctx, *args):
   if len(args) > 1:
@@ -84,8 +87,16 @@ async def delAll(ctx, *args):
     await ctx.send("Please enter delete key")
     return
   else:
-    del_key = int(args[0])
-
+    #make sure the key is an integer
+    #could be a str if changed
+    try:
+      del_key = int(args[0])
+    except:
+      await ctx.send("The key should be digits only")
+      return
+  
+  #key stored in environment value rather than hardcoded.
+  #*taps head* Cyber Security
   if del_key == int(os.getenv("DEL_KEY")):
     keys = db.keys()
     for key in keys:
@@ -93,6 +104,5 @@ async def delAll(ctx, *args):
     await ctx.send("All entries deleted")
   else:
     await ctx.send("Please enter the correct password to delete all entries")
-
 
 bot.run(TOKEN)
