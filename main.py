@@ -24,7 +24,7 @@ def add_quote(msg):
     response = "Someone else thought it was stupid too! That quote has already been archived"
   else:
     db[str(msg.id)] = msg.content
-    response = "That quote is now recorded forever."
+    response = ""
   return response
 
 def get_quote():
@@ -43,10 +43,10 @@ async def addQuote(ctx):
 
     if msg.reference != None:
         print(f' > {msg.reference}')
-        fchdMsg = await msg.channel.fetch_message(msg.reference.message_id)
-        print(f' > {fchdMsg.content}')
+        fchdMsg = await msg.channel.fetch_message(msg.reference.message_id)      
 
-        response = "Wow! A great Quote from " + fchdMsg.author.name
+        response = "Wow! A great Quote from " + fchdMsg.author.name + "\n"
+        response = response + "This'll look great in the pool room"
 
         await ctx.send(add_quote(fchdMsg))
 
@@ -55,23 +55,44 @@ async def addQuote(ctx):
 
     await ctx.send(response)
 
-#TODO add url and reply to direct quote as well as the quote content.
 @bot.command(name='GetQuote', help='Returns a random quote')
 async def getQuote(ctx):
 
   msg = ctx.message
   msgId = get_quote()
-  fchdMsg = await msg.channel.fetch_message(msgId)
+  try:
+    fchdMsg = await msg.channel.fetch_message(msgId)
+    response = "Remember when " + fchdMsg.author.name + " said this?!\n"
+    response = response + "```" + fchdMsg.content + "```\n"
+  except:
+    response = "That message doesnt exist?! Was it deleted?"
 
-  response = "Remember when " + fchdMsg.author.name + " said this?!\n"
-  response = response + "```" + fchdMsg.content + "```\n" + fchdMsg.jump_url
-
-  await ctx.send(response)
+  await fchdMsg.reply(response)
 
 @bot.command(name='ListQuotes', help="Returns how many entires are stored")
 async def getLen(ctx):
   numQuotes = str(db.__len__())
   response = "There are " + numQuotes + " stored."
   await ctx.send(response)
+
+@bot.command(name='DelAll', help = "Deletes all existing quotes.")
+async def delAll(ctx, *args):
+  if len(args) > 1:
+    await ctx.send("Invalid arguments, please enter delete key")
+    return
+  elif len(args) == 0:
+    await ctx.send("Please enter delete key")
+    return
+  else:
+    del_key = int(args[0])
+
+  if del_key == int(os.getenv("DEL_KEY")):
+    keys = db.keys()
+    for key in keys:
+      del db[key]
+    await ctx.send("All entries deleted")
+  else:
+    await ctx.send("Please enter the correct password to delete all entries")
+
 
 bot.run(TOKEN)
