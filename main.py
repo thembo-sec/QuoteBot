@@ -5,9 +5,6 @@ import random
 
 from dotenv import load_dotenv
 
-# TODO figure out if replit allows more than one value per key
-from replit import db # user replit db (uses weird json format)
-
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 CLIENT_ID = os.getenv('CLIENT_ID')
