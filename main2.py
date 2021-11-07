@@ -30,11 +30,11 @@ def add_quote(msg):
 
 
 def get_quote():
-    random.seed()  # set new seed each time its called
-    entries = db.prefix("")  # easiest way to get replit db to return all entries
-    msgId = random.choice(entries)
 
-    return int(msgId)  # only need id, can just fetch message if only used in 1 channel
+    random.seed()  # set new seed each time its called
+    entries = db.all()  # get number of entries
+    message = random.choice(entries)
+    return message
 
 
 def to_dict(msg):
@@ -42,7 +42,8 @@ def to_dict(msg):
     msg_dict = {
         "id": msg.id,
         "author": msg.author.name,
-        "content": msg.content
+        "content": msg.content,
+        "channel": msg.channel
     }
     print(msg_dict)
     return msg_dict
@@ -64,6 +65,29 @@ async def addQuote(ctx):
     else:
         response = "There is no quote here"
         await ctx.send(response)
+
+
+@bot.command(name='GetQuote', help='Returns a random quote')
+async def getQuote(ctx):
+    msg = ctx.message  # assign
+    fetched_msg = get_quote()
+    fetched_id = fetched_msg.get('id')
+
+    try:
+        fchdMsg = await msg.channel.fetch_message(fetched_id)
+        response = "Remember when " + fchdMsg.author.name + " said this?!\n"
+        response = response + "```" + fchdMsg.content + "```\n"
+        await fchdMsg.reply(response)
+    except:
+        response = "That message doesnt exist?! Was it deleted?"
+        await ctx.reply(response)
+
+
+@bot.command(name='ListQuotes', help="Returns how many entires are stored")
+async def getLen(ctx):
+  numQuotes = str(len(db))
+  response = "There are " + numQuotes + " stored."
+  await ctx.send(response)
 
 
 bot.run(TOKEN)
