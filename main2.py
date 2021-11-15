@@ -4,7 +4,7 @@ import random
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-from tinydb import TinyDB, Query
+from tinydb import TinyDB, Query, where
 
 db = TinyDB('quotedb.json')
 
@@ -29,10 +29,9 @@ def add_quote(msg):
     return response
 
 
-def get_quote():
-
+def get_quote(msg):
     random.seed()  # set new seed each time its called
-    entries = db.all()  # get number of entries
+    entries = db.search(where('channel') == msg.channel.name)  # get number of entries
     message = random.choice(entries)
     return message
 
@@ -43,7 +42,7 @@ def to_dict(msg):
         "id": msg.id,
         "author": msg.author.name,
         "content": msg.content,
-        "channel": msg.channel
+        "channel": msg.channel.name
     }
     print(msg_dict)
     return msg_dict
@@ -70,7 +69,7 @@ async def addQuote(ctx):
 @bot.command(name='GetQuote', help='Returns a random quote')
 async def getQuote(ctx):
     msg = ctx.message  # assign
-    fetched_msg = get_quote()
+    fetched_msg = get_quote(msg)
     fetched_id = fetched_msg.get('id')
 
     try:
@@ -85,9 +84,35 @@ async def getQuote(ctx):
 
 @bot.command(name='ListQuotes', help="Returns how many entires are stored")
 async def getLen(ctx):
-  numQuotes = str(len(db))
-  response = "There are " + numQuotes + " stored."
-  await ctx.send(response)
+    numQuotes = str(len(db))
+    response = "There are " + numQuotes + " stored."
+    await ctx.send(response)
+
+
+@bot.command(name='DelAll', help="Deletes all existing quotes.")
+async def delAll(ctx, *args):
+    if len(args) > 1:
+        await ctx.send("Invalid arguments, please enter delete key")
+        return
+    elif len(args) == 0:
+        await ctx.send("Please enter delete key")
+        return
+    else:
+        # make sure the key is an integer
+        # could be a str if changed
+        try:
+            del_key = int(args[0])
+        except:
+            await ctx.send("The key should be digits only")
+            return
+
+    # key stored in environment value rather than hardcoded.
+    # *taps head* Cyber Security
+    if del_key == int(os.getenv("DEL_KEY")):
+        db.truncate()
+        await ctx.send("All entries deleted")
+    else:
+        await ctx.send("Please enter the correct password to delete all entries")
 
 
 bot.run(TOKEN)
